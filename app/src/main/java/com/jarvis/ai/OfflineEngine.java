@@ -19,8 +19,8 @@ public final class OfflineEngine{
   return null;
  }
  private String math(String q){try{
-  String s=q.replace('×','*').replace('÷','/').replace('−','-').replaceAll("[^0-9+*/.\- ]","");
-  if(!s.matches(".*[+*/\-].*"))return null;String[] a=s.trim().split("\\s*[+*/\\-]\\s*");if(a.length!=2)return null;
+  String s=q.replace('×','*').replace('÷','/').replace('−','-').replaceAll("[^0-9+*/. -]","");
+  if(!s.matches(".*[+*/-].*"))return null;String[] a=s.trim().split("\\s*[+*/-]\\s*");if(a.length!=2)return null;
   int x=Integer.parseInt(a[0]),y=Integer.parseInt(a[1]);if(x<0||x>999||y<0||y>999)return null;char op=s.replaceAll("[0-9 .]","").charAt(0);long z=op=='+'?x+y:op=='-'?x-y:op=='*'?(long)x*y:y==0?Long.MIN_VALUE:x/y;return z==Long.MIN_VALUE?"تقسیم بر صفر ممکن نیست.":"پاسخ: "+z;
  }catch(Exception e){return null;}}
 }
