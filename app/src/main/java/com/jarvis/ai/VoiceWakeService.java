@@ -1,0 +1,13 @@
+package com.jarvis.ai;
+import android.app.*;import android.content.*;import android.os.*;import android.speech.*;import java.util.*;
+public class VoiceWakeService extends Service implements RecognitionListener{
+ private SpeechRecognizer sr;private Intent ri;private boolean running;private static final String CH="jarvis_voice";
+ public int onStartCommand(Intent i,int f,int id){if(i!=null&&"STOP".equals(i.getAction())){stopSelf();return START_NOT_STICKY;}start();return START_STICKY;}
+ public void onCreate(){super.onCreate();NotificationChannel c=new NotificationChannel(CH,"JARVIS Voice",NotificationManager.IMPORTANCE_LOW);getSystemService(NotificationManager.class).createNotificationChannel(c);startForeground(21,new Notification.Builder(this,CH).setContentTitle("JARVIS").setContentText("Listening for Hey JARVIS").setSmallIcon(android.R.drawable.ic_btn_speak_now).build());}
+ private void start(){if(running)return;running=true;new Handler(Looper.getMainLooper()).post(this::listen);}
+ private void listen(){if(!running)return;try{if(sr!=null)sr.destroy();sr=SpeechRecognizer.createSpeechRecognizer(this);sr.setRecognitionListener(this);ri=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);ri.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);ri.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,true);ri.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,getPackageName());sr.startListening(ri);}catch(Exception e){new Handler().postDelayed(this::listen,1000);}}
+ public void onResults(Bundle b){String q="";ArrayList<String>x=b.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);if(x!=null&&!x.isEmpty())q=x.get(0);String l=q.toLowerCase(Locale.ROOT);int p=l.indexOf("hey jarvis");if(p>=0){String cmd=q.substring(Math.min(q.length(),p+10)).trim();send(cmd);}listen();}
+ private void send(String q){if(q.isEmpty())return;sendBroadcast(new Intent("com.jarvis.ai.WAKE_COMMAND").putExtra("command",q));}
+ public void onError(int e){new Handler().postDelayed(this::listen,350);}@Override public void onDestroy(){running=false;if(sr!=null)sr.destroy();super.onDestroy();}
+ public IBinder onBind(Intent i){return null;}public void onReadyForSpeech(Bundle b){}public void onBeginningOfSpeech(){}public void onRmsChanged(float r){}public void onBufferReceived(byte[] b){}public void onEndOfSpeech(){}public void onPartialResults(Bundle b){}public void onEvent(int t,Bundle b){}
+}
