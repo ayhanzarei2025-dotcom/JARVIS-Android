@@ -31,9 +31,8 @@ jobs:
       split -b 450M "JARVIS 1.021.apk" "JARVIS-1.021-part-"
       ls -lh JARVIS-1.021-part-*
    - uses: actions/upload-artifact@v6
-     with:
-        name: JARVIS-1.021-APK-PARTS
-        path: |
-          JARVIS-1.021-part-*
-          JARVIS 1.021.apk
-        retention-days: 14
+     with: { name: JARVIS-1.021-part-1, path: 'JARVIS-1.021-part-aa', retention-days: 14 }
+   - uses: actions/upload-artifact@v6
+     with: { name: JARVIS-1.021-part-2, path: 'JARVIS-1.021-part-ab', retention-days: 14 }
+   - uses: actions/upload-artifact@v6
+     with: { name: JARVIS-1.021-part-3, path: 'JARVIS-1.021-part-ac', retention-days: 14 }
