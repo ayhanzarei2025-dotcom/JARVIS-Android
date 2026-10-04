@@ -1,5 +1,5 @@
 package com.jarvis.ai;
-import android.content.*; import android.database.sqlite.*;
+import android.content.*; import android.database.sqlite.*; import android.database.Cursor;
 public class NotificationStore extends SQLiteOpenHelper{
  public NotificationStore(Context c){super(c,"notifications.db",null,1);}
  public void onCreate(SQLiteDatabase d){d.execSQL("CREATE TABLE n(id INTEGER PRIMARY KEY AUTOINCREMENT, app TEXT, title TEXT, text TEXT, ts INTEGER)");}
