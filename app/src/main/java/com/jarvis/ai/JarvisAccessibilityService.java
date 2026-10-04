@@ -1,6 +1,3 @@
 package com.jarvis.ai;
-import android.accessibilityservice.AccessibilityService; import android.view.accessibility.AccessibilityEvent;
-public class JarvisAccessibilityService extends AccessibilityService{
- public void onAccessibilityEvent(AccessibilityEvent e){}
- public void onInterrupt(){}
-}
+import android.accessibilityservice.AccessibilityService;import android.view.accessibility.AccessibilityEvent;
+public class JarvisAccessibilityService extends AccessibilityService{private static JarvisAccessibilityService instance;public void onServiceConnected(){instance=this;}public void onDestroy(){if(instance==this)instance=null;super.onDestroy();}public void onAccessibilityEvent(AccessibilityEvent e){}public void onInterrupt(){}public static boolean performBack(){return instance!=null&&instance.performGlobalAction(GLOBAL_ACTION_BACK);}public static boolean performHome(){return instance!=null&&instance.performGlobalAction(GLOBAL_ACTION_HOME);}}
