@@ -28,5 +28,12 @@ jobs:
       echo "FINAL APK bytes: $size"
       test "$size" -ge 500000000
       cp app/build/outputs/apk/debug/app-debug.apk "JARVIS 1.021.apk"
+      split -b 450M "JARVIS 1.021.apk" "JARVIS-1.021-part-"
+      ls -lh JARVIS-1.021-part-*
    - uses: actions/upload-artifact@v6
-     with: { name: JARVIS-1.021-APK, path: 'JARVIS 1.021.apk', retention-days: 14 }
+     with:
+        name: JARVIS-1.021-APK-PARTS
+        path: |
+          JARVIS-1.021-part-*
+          JARVIS 1.021.apk
+        retention-days: 14
