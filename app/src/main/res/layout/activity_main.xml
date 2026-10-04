@@ -1,31 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent" android:background="#02070b">
-    <SurfaceView android:id="@+id/preview" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" />
-    <View android:id="@+id/cameraDim" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#33000000" android:visibility="gone" />
-    <com.jarvis.ai.HudView android:id="@+id/hudOverlay" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" />
-    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:padding="12dp">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
-            <TextView android:id="@+id/status" android:text="CORE ONLINE" android:textColor="#8cecff" android:textSize="13sp" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
-            <Button android:id="@+id/camera" android:text="HUD" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-        </LinearLayout>
-        <TextView android:id="@+id/hud" android:text="◉ JARVIS / READY" android:textColor="#62dfff" android:textSize="11sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="5dp"/>
-        <ScrollView android:id="@+id/scroll" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:background="#091016" android:alpha="0.94" android:padding="10dp">
-            <TextView android:id="@+id/chat" android:textColor="#d7e8e8" android:textSize="15sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:textIsSelectable="true"/>
-        </ScrollView>
-        <EditText android:id="@+id/input" android:hint="Ask JARVIS..." android:textColor="#ffffff" android:textColorHint="#66777d" android:singleLine="true" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
-            <Button android:id="@+id/voice" android:text="VOICE" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
-            <Button android:id="@+id/send" android:text="EXECUTE" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
-            <Button android:id="@+id/stop" android:text="STOP" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
-        </LinearLayout>
-        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
-            <Button android:id="@+id/permissions" android:text="PERMS" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-            <Button android:id="@+id/notifications" android:text="NOTIFY" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-            <Button android:id="@+id/briefing" android:text="BRIEF" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-            <Button android:id="@+id/settings" android:text="AI SETUP" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
-            <Button android:id="@+id/memory" android:text="MEMORY" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
-            <Button android:id="@+id/capture" android:text="CAPTURE" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
-        </LinearLayout>
-    </LinearLayout>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+ android:layout_width="match_parent" android:layout_height="match_parent" android:background="#03070D">
+ <androidx.camera.view.PreviewView android:id="@+id/preview" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" app:scaleType="fillCenter"/>
+ <View android:id="@+id/cameraDim" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#66000000" android:visibility="gone"/>
+ <com.jarvis.ai.HudView android:id="@+id/hudOverlay" android:layout_width="match_parent" android:layout_height="match_parent"/>
+ <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent" android:padding="12dp">
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
+   <TextView android:id="@+id/status" android:text="● در حال اتصال" android:textColor="#5CFFE1" android:textSize="13sp" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+   <TextView android:id="@+id/logo" android:text="JARVIS ◈" android:textColor="#5CD8FF" android:textStyle="bold" android:textSize="20sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+   <ImageButton android:id="@+id/menu" android:src="@android:drawable/ic_menu_more" android:contentDescription="منو" android:background="@android:color/transparent" android:tint="#62DFFF" android:layout_width="44dp" android:layout_height="44dp"/>
+  </LinearLayout>
+  <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
+   <TextView android:id="@+id/mode" android:text="حالت: هوشمند • زبان: فارسی • صدا: فارسی" android:textColor="#9BBAC5" android:textSize="11sp" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+   <TextView android:id="@+id/connection" android:text="AI: ●  Offline: ●" android:textColor="#6CF5B2" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+  </LinearLayout>
+  <TextView android:id="@+id/hud" android:text="◉ CORE / ONLINE • VISION / STANDBY • MEMORY / READY" android:textColor="#4FE2FF" android:textSize="10sp" android:paddingTop="5dp" android:paddingBottom="5dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+  <ScrollView android:id="@+id/scroll" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:background="#071018" android:alpha="0.96" android:padding="10dp">
+   <TextView android:id="@+id/chat" android:textColor="#E6F8FF" android:textSize="15sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:textIsSelectable="true"/>
+  </ScrollView>
+  <EditText android:id="@+id/input" android:hint="با جارویس صحبت کنید..." android:textColor="#FFFFFF" android:textColorHint="#66818D" android:singleLine="true" android:padding="12dp" android:background="#101C25" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+  <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+   <Button android:id="@+id/camera" android:text="👁 دوربین" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+   <Button android:id="@+id/voice" android:text="🎙 ویس" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+   <Button android:id="@+id/send" android:text="➤ ارسال" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+  </LinearLayout>
+  <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+   <Button android:id="@+id/wake" android:text="WAKE" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+   <Button android:id="@+id/memory" android:text="MEMORY" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+   <Button android:id="@+id/notifications" android:text="پیام‌ها" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+  </LinearLayout>
+ </LinearLayout>
 </FrameLayout>
