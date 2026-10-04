@@ -1,0 +1,27 @@
+name: Build JARVIS APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with: { distribution: temurin, java-version: '17' }
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0 cmake;3.22.1 ndk;27.0.12077973'
+      - uses: gradle/actions/setup-gradle@v6
+        with: { gradle-version: '8.7', cache-provider: basic }
+      - run: gradle --no-daemon --stacktrace :app:assembleDebug
+      - run: test -f app/build/outputs/apk/debug/app-debug.apk
+      - uses: actions/upload-artifact@v6
+        with:
+          name: JARVIS-v1.0-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
