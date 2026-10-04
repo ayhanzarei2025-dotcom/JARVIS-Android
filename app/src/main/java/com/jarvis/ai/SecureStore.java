@@ -1,0 +1,10 @@
+package com.jarvis.ai;
+import android.content.*;import android.security.keystore.*;import javax.crypto.*;import javax.crypto.spec.GCMParameterSpec;import java.nio.charset.StandardCharsets;import java.security.*;import java.util.Base64;
+public final class SecureStore{
+ private static final String KS="AndroidKeyStore",ALIAS="jarvis_api_key_v1021",PREF="jarvis_secure";
+ private static KeyStore ks()throws Exception{KeyStore k=KeyStore.getInstance(KS);k.load(null);return k;}
+ private static SecretKey key()throws Exception{KeyStore k=ks();if(!k.containsAlias(ALIAS)){KeyGenerator g=KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES,KS);g.init(new KeyGenParameterSpec.Builder(ALIAS,KeyProperties.PURPOSE_ENCRYPT|KeyProperties.PURPOSE_DECRYPT).setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).build());g.generateKey();}return ((KeyStore.SecretKeyEntry)k.getEntry(ALIAS,null)).getSecretKey();}
+ public static void put(Context c,String name,String value){try{Cipher x=Cipher.getInstance("AES/GCM/NoPadding");x.init(Cipher.ENCRYPT_MODE,key());byte[] iv=x.getIV(),ct=x.doFinal(value.getBytes(StandardCharsets.UTF_8));c.getSharedPreferences(PREF,0).edit().putString(name,Base64.getEncoder().encodeToString(iv)+"."+Base64.getEncoder().encodeToString(ct)).apply();}catch(Exception ignored){}}
+ public static String get(Context c,String name){try{String s=c.getSharedPreferences(PREF,0).getString(name,"");if(s.isEmpty())return "";String[] p=s.split("\\.");Cipher x=Cipher.getInstance("AES/GCM/NoPadding");x.init(Cipher.DECRYPT_MODE,key(),new GCMParameterSpec(128,Base64.getDecoder().decode(p[0])));return new String(x.doFinal(Base64.getDecoder().decode(p[1])),StandardCharsets.UTF_8);}catch(Exception e){return "";}}
+ public static void remove(Context c,String name){c.getSharedPreferences(PREF,0).edit().remove(name).apply();}
+}
