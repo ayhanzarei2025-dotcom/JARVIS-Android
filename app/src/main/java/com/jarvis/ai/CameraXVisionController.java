@@ -1,5 +1,5 @@
 package com.jarvis.ai;
-import android.app.*;import android.content.*;import android.graphics.*;import android.os.*;import androidx.camera.core.*;import androidx.camera.lifecycle.ProcessCameraProvider;import androidx.camera.view.PreviewView;import androidx.core.content.ContextCompat;import androidx.appcompat.app.AppCompatActivity;import java.io.*;import java.util.concurrent.*;
+import android.app.*;import android.content.*;import android.graphics.*;import android.os.*;import androidx.camera.core.*;import androidx.camera.lifecycle.ProcessCameraProvider;import androidx.camera.view.PreviewView;import androidx.core.content.ContextCompat;import androidx.appcompat.app.AppCompatActivity;import java.io.*;import java.util.*;import java.util.concurrent.*;
 public final class CameraXVisionController{
  private final AppCompatActivity a;private final PreviewView v;private ImageCapture capture;private ProcessCameraProvider provider;
  public CameraXVisionController(AppCompatActivity x,PreviewView p){a=x;v=p;}
