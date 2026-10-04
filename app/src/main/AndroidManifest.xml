@@ -1,0 +1,18 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+ <uses-permission android:name="android.permission.INTERNET"/>
+ <uses-permission android:name="android.permission.CAMERA"/>
+ <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+ <uses-feature android:name="android.hardware.camera" android:required="false"/>
+ <application android:theme="@style/AppTheme" android:label="JARVIS">
+  <service android:name=".JarvisNotificationListener" android:label="JARVIS Notification Access" android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" android:exported="true">
+   <intent-filter><action android:name="android.service.notification.NotificationListenerService" /></intent-filter>
+  </service>
+  <service android:name=".JarvisAccessibilityService" android:label="JARVIS Accessibility Access" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" android:exported="false">
+   <intent-filter><action android:name="android.accessibilityservice.AccessibilityService" /></intent-filter>
+   <meta-data android:name="android.accessibilityservice" android:resource="@xml/jarvis_accessibility" />
+  </service>
+  <activity android:name=".MainActivity" android:screenOrientation="portrait" android:exported="true">
+   <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+  </activity>
+ </application>
+</manifest>
