@@ -7,25 +7,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with: { distribution: temurin, java-version: '17' }
+      - uses: android-actions/setup-android@v4
         with:
-          distribution: temurin
-          java-version: '17'
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0 cmake;3.22.1 ndk;27.0.12077973'
+      - uses: gradle/actions/setup-gradle@v6
+        with: { gradle-version: '8.7', cache-provider: basic }
       - name: Prepare offline model pack
         run: |
           mkdir -p app/src/main/assets
           curl -L --fail --retry 3 "https://huggingface.co/unsloth/SmolLM2-135M-Instruct-GGUF/resolve/main/SmolLM2-135M-Instruct-Q4_K_M.gguf?download=true" -o app/src/main/assets/jarvis_offline_model.gguf
           ls -lh app/src/main/assets/jarvis_offline_model.gguf
       - name: Build debug APK
-        run: gradle --no-daemon assembleDebug
+        run: gradle --no-daemon --stacktrace :app:assembleDebug
       - name: Verify APK size
         run: |
-          APK=$(find app/build/outputs/apk/debug -name '*.apk' | head -1)
+          APK=app/build/outputs/apk/debug/app-debug.apk
           ls -lh "$APK"
           test $(stat -c%s "$APK") -ge 100000000
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: JARVIS-1.021-APK
-          path: app/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
