@@ -1,27 +1,26 @@
 package com.jarvis.ai;
-import android.app.*; import android.os.*; import android.content.*; import android.content.pm.PackageManager; import android.speech.*; import android.view.*; import android.widget.*; import java.util.*;
+import android.app.*;import android.os.*;import android.content.*;import android.content.pm.PackageManager;import android.graphics.Color;import android.view.*;import android.widget.*;import java.util.*;
 public class MainActivity extends Activity{
- static{System.loadLibrary("jarviscore");}
- private native String nativeProcess(String input);
- private TextView chat,status; private EditText input; private ConversationStore memory; private NotificationStore notes; private AIClient ai; private LanguageManager voice; private CameraController camera; private View hud;
- protected void onCreate(Bundle b){super.onCreate(b);setContentView(R.layout.activity_main);
-  chat=findViewById(R.id.chat);status=findViewById(R.id.status);input=findViewById(R.id.input);hud=findViewById(R.id.hudOverlay);memory=new ConversationStore(this);notes=new NotificationStore(this);ai=new AIClient();voice=new LanguageManager(this);camera=new CameraController();
-  findViewById(R.id.send).setOnClickListener(v->send()); findViewById(R.id.voice).setOnClickListener(v->listen()); findViewById(R.id.stop).setOnClickListener(v->voice.speak("",1)); findViewById(R.id.memory).setOnClickListener(v->show("MEMORY",memory.recent(30))); findViewById(R.id.briefing).setOnClickListener(v->show("BRIEFING",notes.briefing()));
-  findViewById(R.id.camera).setOnClickListener(v->{hud.setVisibility(hud.getVisibility()==View.VISIBLE?View.GONE:View.VISIBLE);});
-  findViewById(R.id.notifications).setOnClickListener(v->startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")));
-  findViewById(R.id.permissions).setOnClickListener(v->requestPermissions(new String[]{android.Manifest.permission.CAMERA,android.Manifest.permission.RECORD_AUDIO},7));
-  findViewById(R.id.capture).setOnClickListener(v->show("VISION","Camera capture pipeline is ready; connect an AI vision endpoint in the next build."));
-  findViewById(R.id.settings).setOnClickListener(v->setupAI());
-  status.setText("CORE ONLINE • C++/JNI READY"); append("JARVIS","Ready.");
+ private TextView chat,status;private EditText input;private ConversationStore memory;private NotificationStore notes;private AIClient ai;private LanguageManager voice;private CameraController camera;private SurfaceView preview;private BroadcastReceiver wake;
+ protected void onCreate(Bundle b){super.onCreate(b);setContentView(R.layout.activity_main);chat=findViewById(R.id.chat);status=findViewById(R.id.status);input=findViewById(R.id.input);preview=findViewById(R.id.preview);memory=new ConversationStore(this);notes=new NotificationStore(this);ai=new AIClient(this);voice=new LanguageManager(this);camera=new CameraController();
+  findViewById(R.id.send).setOnClickListener(v->send(input.getText().toString()));findViewById(R.id.voice).setOnClickListener(v->startVoice());findViewById(R.id.stop).setOnClickListener(v->stopVoice());findViewById(R.id.memory).setOnClickListener(v->show("MEMORY",memory.recent(30)));findViewById(R.id.briefing).setOnClickListener(v->show("BRIEFING",notes.briefing()));findViewById(R.id.settings).setOnClickListener(v->setupAI());findViewById(R.id.permissions).setOnClickListener(v->requestPermissions(new String[]{android.Manifest.permission.CAMERA,android.Manifest.permission.RECORD_AUDIO},7));findViewById(R.id.notifications).setOnClickListener(v->startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")));findViewById(R.id.camera).setOnClickListener(v->toggleCamera());findViewById(R.id.capture).setOnClickListener(v->vision());
+  status.setText("JARVIS 1.021 • CORE ONLINE • OFFLINE READY");append("JARVIS","Ready. Say “Hey JARVIS” to activate voice.");wake=new BroadcastReceiver(){public void onReceive(Context c,Intent i){send(i.getStringExtra("command"));}};registerReceiver(wake,new IntentFilter("com.jarvis.ai.WAKE_COMMAND"),Context.RECEIVER_NOT_EXPORTED);
  }
- private void send(){String q=input.getText().toString().trim();if(q.isEmpty())return;input.setText("");append("YOU",q);memory.add("user",q);String l=q.toLowerCase(Locale.ROOT);
-  if(l.startsWith("search ")||l.startsWith("web ")){WebSearch.open(this,q.substring(q.indexOf(' ')+1));append("JARVIS","Opening web search.");return;}
-  String local=nativeProcess(q); if(!local.startsWith("OPEN-DOMAIN")){append("JARVIS",local);memory.add("jarvis",local);voice.speak(local,1);return;}
-  ai.ask(q+"\nContext:\n"+memory.recent(12),x->{append("JARVIS",x);memory.add("assistant",x);voice.speak(x,1);});
+ private void send(String q){if(q==null||q.trim().isEmpty())return;q=q.trim();input.setText("");append("YOU",q);memory.add("user",q);String l=q.toLowerCase(Locale.ROOT);
+  String action=ActionEngine.run(this,q);if(action!=null){reply(action);return;}if(l.startsWith("search ")||l.startsWith("web ")){WebSearch.open(this,q.substring(q.indexOf(' ')+1));reply("جستجو را باز کردم.");return;}
+  if(l.startsWith("remember ")||l.startsWith("یادآوری کن ")){memory.remember(q.substring(q.indexOf(' ')+1));reply("ذخیره شد و در حافظه بلندمدت JARVIS می‌ماند.");return;}
+  String off=OfflineEngine.answer(q);if(off!=null&&!online()){reply(off);return;}
+  if(off!=null&&l.matches("status|help|سلام|hello|hi")){reply(off);return;}
+  ai.ask("You are JARVIS 1.021, a concise Android assistant. Use the user's long-term memory when relevant. User request:\n"+q+"\nMemory:\n"+memory.context(),x->{reply(x);});
  }
- private void listen(){if(checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)!=PackageManager.PERMISSION_GRANTED){requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO},8);return;} Intent i=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);startActivityForResult(i,99);}
- protected void onActivityResult(int r,int c,Intent d){super.onActivityResult(r,c,d);if(r==99&&c==RESULT_OK&&d!=null){ArrayList<String>x=d.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);if(x!=null&&!x.isEmpty()){input.setText(x.get(0));send();}}}
- private void append(String who,String x){chat.append("\n"+who+": "+x+"\n");}
+ private boolean online(){return ((android.net.ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE)).getActiveNetwork()!=null;}
+ private void reply(String x){append("JARVIS",x);memory.add("assistant",x);voice.speak(x,1.0f);}
+ private void vision(){byte[] x=camera.latest();if(x==null){reply("ابتدا دوربین را باز و چند لحظه صبر کنید.");return;}ai.askVision("Describe what you see in this camera image. Be concise and mention important objects, text, hazards, and spatial relations.",x,this::reply);}
+ private void toggleCamera(){if(preview.getVisibility()==View.VISIBLE){camera.close();preview.setVisibility(View.GONE);status.setText("JARVIS 1.021 • CAMERA OFF");}else{preview.setVisibility(View.VISIBLE);camera.open(this,preview);status.setText("JARVIS 1.021 • VISION CAMERA ACTIVE");}}
+ private void startVoice(){if(checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)!=PackageManager.PERMISSION_GRANTED){requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO},8);return;}startService(new Intent(this,VoiceWakeService.class));reply("حالت شنود فعال شد. Wake word: Hey JARVIS");}
+ private void stopVoice(){startService(new Intent(this,VoiceWakeService.class).setAction("STOP"));status.setText("JARVIS 1.021 • VOICE OFF");}
+ private void setupAI(){LinearLayout l=new LinearLayout(this);l.setOrientation(LinearLayout.VERTICAL);EditText e=new EditText(this);e.setHint("OpenAI-compatible endpoint");e.setText(ai.endpoint());EditText m=new EditText(this);m.setHint("Model");m.setText(ai.model());EditText k=new EditText(this);k.setHint("API key (stored in Android Keystore)");k.setInputType(0x81);l.addView(e);l.addView(m);l.addView(k);new AlertDialog.Builder(this).setTitle("JARVIS AI SETUP").setView(l).setPositiveButton("SAVE",(d,w)->{ai.configure(e.getText().toString(),k.getText().toString(),m.getText().toString());show("JARVIS","Provider saved. API key is encrypted with Android Keystore.");}).setNegativeButton("CANCEL",null).show();}
+ private void append(String who,String x){chat.append("\n"+who+": "+x+"\n");((ScrollView)findViewById(R.id.scroll)).post(()->((ScrollView)findViewById(R.id.scroll)).fullScroll(View.FOCUS_DOWN));}
  private void show(String t,String x){new AlertDialog.Builder(this).setTitle(t).setMessage(x).setPositiveButton("OK",null).show();}
- private void setupAI(){LinearLayout l=new LinearLayout(this);l.setOrientation(LinearLayout.VERTICAL);EditText e=new EditText(this);e.setHint("AI endpoint URL");EditText k=new EditText(this);k.setHint("API key (optional)");l.addView(e);l.addView(k);new AlertDialog.Builder(this).setTitle("AI SETUP").setView(l).setPositiveButton("SAVE",(d,w)->{ai.configure(e.getText().toString(),k.getText().toString());show("JARVIS","AI provider configured.");}).setNegativeButton("CANCEL",null).show();}
+ protected void onDestroy(){try{unregisterReceiver(wake);}catch(Exception ignored){}camera.close();voice.speak("",1);super.onDestroy();}
 }
