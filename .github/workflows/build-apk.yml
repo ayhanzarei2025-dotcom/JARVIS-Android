@@ -1,6 +1,6 @@
 name: Build JARVIS 1.021 APK
 on: { workflow_dispatch: {}, push: { branches: [ main ] }, pull_request: {} }
-permissions: { contents: read }
+permissions: { contents: write }
 jobs:
  build:
   runs-on: ubuntu-latest
@@ -36,3 +36,10 @@ jobs:
      with: { name: JARVIS-1.021-part-2, path: 'JARVIS-1.021-part-ab', retention-days: 14 }
    - uses: actions/upload-artifact@v6
      with: { name: JARVIS-1.021-part-3, path: 'JARVIS-1.021-part-ac', retention-days: 14 }
+   - name: Publish APK to GitHub Release
+     env:
+      GH_TOKEN: ${{ github.token }}
+     run: |
+      gh release delete v1.021 --yes || true
+      git push --delete origin v1.021 || true
+      gh release create v1.021 --title "JARVIS 1.021" --notes "JARVIS 1.021 APK — Persian-first, offline Qwen model, camera/voice/tool features." "JARVIS 1.021.apk"
