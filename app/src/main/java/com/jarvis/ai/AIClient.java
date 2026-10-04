@@ -1,19 +1,3 @@
 package com.jarvis.ai;
-import android.os.Handler; import android.os.Looper; import java.io.*; import java.net.*; import org.json.*;
-public class AIClient {
- public interface Callback { void done(String text); }
- private String endpoint=""; private String apiKey="";
- public void configure(String e,String k){endpoint=e==null?"":e.trim();apiKey=k==null?"":k.trim();}
- public void ask(String prompt,Callback cb){
-  new Thread(()->{String out;
-   try{ if(endpoint.isEmpty()) out="AI provider is not configured. Use AI SETUP."; else {
-    HttpURLConnection c=(HttpURLConnection)new URL(endpoint).openConnection(); c.setRequestMethod("POST"); c.setDoOutput(true); c.setConnectTimeout(15000); c.setReadTimeout(30000);
-    c.setRequestProperty("Content-Type","application/json"); if(!apiKey.isEmpty()) c.setRequestProperty("Authorization","Bearer "+apiKey);
-    JSONObject body=new JSONObject(); body.put("prompt",prompt); try(OutputStream os=c.getOutputStream()){os.write(body.toString().getBytes("UTF-8"));}
-    BufferedReader br=new BufferedReader(new InputStreamReader(c.getInputStream())); StringBuilder s=new StringBuilder(); String l; while((l=br.readLine())!=null)s.append(l);
-    out=s.toString(); c.disconnect();
-   }}catch(Exception e){out="AI connection error: "+e.getMessage();}
-   new Handler(Looper.getMainLooper()).post(()->cb.done(out));
-  }).start();
- }
-}
+import android.os.*;import android.util.Base64;import org.json.*;import java.io.*;import java.net.*;import java.nio.charset.StandardCharsets;
+public class AIClient{public interface Callback{void done(String x);}String endpoint="https://api.openai.com/v1/chat/completions",key="",model="gpt-4o-mini";public void configure(String e,String k,String m){if(e!=null&&!e.trim().isEmpty())endpoint=e.trim();key=k==null?"":k.trim();if(m!=null&&!m.trim().isEmpty())model=m.trim();}public void ask(String p,Callback cb){post(p,null,cb);}public void vision(String p,byte[] j,Callback cb){post(p,j,cb);}void post(String p,byte[] img,Callback cb){new Thread(()->{String out;HttpURLConnection c=null;try{c=(HttpURLConnection)new URL(endpoint).openConnection();c.setRequestMethod("POST");c.setDoOutput(true);c.setConnectTimeout(15000);c.setReadTimeout(60000);c.setRequestProperty("Content-Type","application/json");if(!key.isEmpty())c.setRequestProperty("Authorization","Bearer "+key);JSONObject b=new JSONObject();b.put("model",model);JSONArray ms=new JSONArray();JSONObject m=new JSONObject().put("role","user");if(img==null)m.put("content",p);else{JSONArray a=new JSONArray();a.put(new JSONObject().put("type","text").put("text",p));a.put(new JSONObject().put("type","image_url").put("image_url",new JSONObject().put("url","data:image/jpeg;base64,"+Base64.encodeToString(img,Base64.NO_WRAP))));m.put("content",a);}ms.put(m);b.put("messages",ms);try(OutputStream o=c.getOutputStream()){o.write(b.toString().getBytes(StandardCharsets.UTF_8));}int code=c.getResponseCode();InputStream is=code>=200&&code<300?c.getInputStream():c.getErrorStream();BufferedReader br=new BufferedReader(new InputStreamReader(is,StandardCharsets.UTF_8));StringBuilder s=new StringBuilder();String z;while((z=br.readLine())!=null)s.append(z);if(code<200||code>=300)out="AI error "+code+": "+s;else out=new JSONObject(s.toString()).getJSONArray("choices").getJSONObject(0).getJSONObject("message").optString("content",s.toString());}catch(Exception e){out="AI connection error: "+e.getMessage();}finally{if(c!=null)c.disconnect();}String x=out;new Handler(Looper.getMainLooper()).post(()->cb.done(x));}).start();}}
