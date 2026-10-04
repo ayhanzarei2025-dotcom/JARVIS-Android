@@ -12,9 +12,19 @@ jobs:
      with: { packages: 'platform-tools platforms;android-35 build-tools;35.0.0 cmake;3.22.1 ndk;27.0.12077973' }
    - uses: gradle/actions/setup-gradle@v6
      with: { gradle-version: '8.7', cache-provider: basic }
-   - run: gradle --no-daemon --stacktrace :app:assembleDebug
-   - run: test -f app/build/outputs/apk/debug/app-debug.apk
-   - run: cp app/build/outputs/apk/debug/app-debug.apk "JARVIS 1.021.apk"
-   - run: ls -lh "JARVIS 1.021.apk"
+   - name: Download real offline model
+     run: |
+      mkdir -p app/src/main/assets/offline
+      curl -L --fail --retry 5 --retry-delay 3 -o app/src/main/assets/offline/jarvis-qwen-1.5b-q2.gguf https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q2_k.gguf
+      ls -lh app/src/main/assets/offline/jarvis-qwen-1.5b-q2.gguf
+   - name: Build APK
+     run: gradle --no-daemon --stacktrace :app:assembleDebug
+   - name: Verify APK size
+     run: |
+      test -f app/build/outputs/apk/debug/app-debug.apk
+      size=$(stat -c%s app/build/outputs/apk/debug/app-debug.apk)
+      echo "APK bytes: $size"
+      test "$size" -ge 500000000
+      cp app/build/outputs/apk/debug/app-debug.apk "JARVIS 1.021.apk"
    - uses: actions/upload-artifact@v6
      with: { name: JARVIS-1.021-APK, path: 'JARVIS 1.021.apk', retention-days: 14 }
