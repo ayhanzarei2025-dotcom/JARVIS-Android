@@ -1,5 +1,5 @@
 package com.jarvis.ai;
-import android.content.*; import android.database.sqlite.*;
+import android.content.*; import android.database.sqlite.*; import android.database.Cursor;
 public class ConversationStore extends SQLiteOpenHelper{
  public ConversationStore(Context c){super(c,"jarvis.db",null,1);}
  public void onCreate(SQLiteDatabase d){d.execSQL("CREATE TABLE messages(id INTEGER PRIMARY KEY AUTOINCREMENT, role TEXT, text TEXT, ts INTEGER)");}
