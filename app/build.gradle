@@ -6,7 +6,7 @@ android { namespace 'com.jarvis.ai'; compileSdk 35
  externalNativeBuild { cmake { path 'src/main/cpp/CMakeLists.txt'; version '3.22.1' } }
 }
 dependencies {
- implementation 'androidx.core:core:1.17.0'
+ implementation 'androidx.core:core:1.15.0'
  implementation 'androidx.appcompat:appcompat:1.7.1'
  implementation 'androidx.security:security-crypto:1.1.0-alpha06'
  implementation 'androidx.camera:camera-core:1.5.0'
