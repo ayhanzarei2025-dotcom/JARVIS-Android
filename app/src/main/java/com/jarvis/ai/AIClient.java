@@ -1,19 +1,3 @@
 package com.jarvis.ai;
-import android.os.Handler; import android.os.Looper; import java.io.*; import java.net.*; import org.json.*;
-public class AIClient {
- public interface Callback { void done(String text); }
- private String endpoint=""; private String apiKey="";
- public void configure(String e,String k){endpoint=e==null?"":e.trim();apiKey=k==null?"":k.trim();}
- public void ask(String prompt,Callback cb){
-  new Thread(()->{String out;
-   try{ if(endpoint.isEmpty()) out="AI provider is not configured. Use AI SETUP."; else {
-    HttpURLConnection c=(HttpURLConnection)new URL(endpoint).openConnection(); c.setRequestMethod("POST"); c.setDoOutput(true); c.setConnectTimeout(15000); c.setReadTimeout(30000);
-    c.setRequestProperty("Content-Type","application/json"); if(!apiKey.isEmpty()) c.setRequestProperty("Authorization","Bearer "+apiKey);
-    JSONObject body=new JSONObject(); body.put("prompt",prompt); try(OutputStream os=c.getOutputStream()){os.write(body.toString().getBytes("UTF-8"));}
-    BufferedReader br=new BufferedReader(new InputStreamReader(c.getInputStream())); StringBuilder s=new StringBuilder(); String l; while((l=br.readLine())!=null)s.append(l);
-    out=s.toString(); c.disconnect();
-   }}catch(Exception e){out="AI connection error: "+e.getMessage();}
-   new Handler(Looper.getMainLooper()).post(()->cb.done(out));
-  }).start();
- }
-}
+import android.content.*;import android.os.*;import java.io.*;import java.net.*;import java.nio.charset.StandardCharsets;import java.util.*;import org.json.*;
+public class AIClient{public interface Callback{void done(String text);}private final Context ctx;private String endpoint,model;public AIClient(Context c){ctx=c.getApplicationContext();endpoint=c.getSharedPreferences("jarvis",0).getString("endpoint","https://api.openai.com/v1/chat/completions");model=c.getSharedPreferences("jarvis",0).getString("model","gpt-4o-mini");}public void configure(String e,String k,String m){endpoint=e==null||e.trim().isEmpty()?"https://api.openai.com/v1/chat/completions":e.trim();model=m==null||m.trim().isEmpty()?"gpt-4o-mini":m.trim();ctx.getSharedPreferences("jarvis",0).edit().putString("endpoint",endpoint).putString("model",model).apply();SecureStore.put(ctx,"api_key",k==null?"":k.trim());}public String endpoint(){return endpoint;}public String model(){return model;}public void ask(String p,Callback cb){request(p,null,cb);}public void askVision(String p,byte[] j,Callback cb){request(p,j,cb);}private void request(String p,byte[] jpeg,Callback cb){new Thread(()->{String out;try{String key=SecureStore.get(ctx,"api_key");if(key.isEmpty()){post(cb,"API Key تنظیم نشده است.");return;}HttpURLConnection c=(HttpURLConnection)new URL(endpoint).openConnection();c.setRequestMethod("POST");c.setDoOutput(true);c.setConnectTimeout(15000);c.setReadTimeout(60000);c.setRequestProperty("Content-Type","application/json");c.setRequestProperty("Authorization","Bearer "+key);JSONObject body=new JSONObject().put("model",model).put("temperature",0.4).put("max_tokens",700);JSONArray msgs=new JSONArray();JSONObject msg=new JSONObject().put("role","user");if(jpeg==null)msg.put("content",p);else{JSONArray a=new JSONArray();a.put(new JSONObject().put("type","text").put("text",p));a.put(new JSONObject().put("type","image_url").put("image_url",new JSONObject().put("url","data:image/jpeg;base64,"+Base64.getEncoder().encodeToString(jpeg))));msg.put("content",a);}msgs.put(msg);body.put("messages",msgs);try(OutputStream os=c.getOutputStream()){os.write(body.toString().getBytes(StandardCharsets.UTF_8));}int code=c.getResponseCode();String s=read(code>=400?c.getErrorStream():c.getInputStream());if(code>=400)out="AI HTTP "+code+": "+s;else{JSONObject j=new JSONObject(s);out=j.optJSONArray("choices").getJSONObject(0).optJSONObject("message").optString("content",s);}c.disconnect();}catch(Exception e){out="AI connection error: "+e.getMessage();}post(cb,out);}).start();}private void post(Callback cb,String s){new Handler(Looper.getMainLooper()).post(()->cb.done(s));}private static String read(InputStream in)throws Exception{if(in==null)return "";BufferedReader r=new BufferedReader(new InputStreamReader(in,StandardCharsets.UTF_8));StringBuilder b=new StringBuilder();String x;while((x=r.readLine())!=null)b.append(x);return b.toString();}}
