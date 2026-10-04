@@ -1,6 +1,7 @@
 package com.jarvis.ai;
-import android.content.*; import android.graphics.*; import android.view.*;
+import android.content.*;import android.graphics.*;import android.view.*;import android.os.*;
 public class HudView extends View{
- private final Paint p=new Paint(1); public HudView(Context c,android.util.AttributeSet a){super(c,a);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(3);}
- protected void onDraw(Canvas c){super.onDraw(c);p.setColor(Color.CYAN);float x=getWidth()/2f,y=getHeight()/2f;c.drawCircle(x,y,90,p);c.drawLine(x-130,y,x+130,y,p);c.drawLine(x,y-130,x,y+130,p);p.setStyle(Paint.Style.FILL);p.setTextSize(26);c.drawText("JARVIS",30,50,p);p.setStyle(Paint.Style.STROKE);}
+ Paint p=new Paint(1);float rot=0;
+ public HudView(Context c,android.util.AttributeSet a){super(c,a);p.setStrokeWidth(3);setLayerType(View.LAYER_TYPE_SOFTWARE,null);new Handler().post(new Runnable(){public void run(){rot+=1;invalidate();postDelayed(this,40);}});}
+ protected void onDraw(Canvas c){super.onDraw(c);float x=getWidth()/2f,y=getHeight()/2f;float r=Math.min(getWidth(),getHeight())*.22f;p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2);p.setColor(Color.argb(100,70,220,255));c.drawCircle(x,y,r,p);c.drawCircle(x,y,r+18,p);p.setColor(Color.argb(70,100,255,220));c.drawCircle(x,y,r+42,p);p.setColor(Color.rgb(75,225,255));p.setStrokeWidth(4);c.drawArc(x-r-25,y-r-25,x+r+25,y+r+25,rot,75,false,p);c.drawArc(x-r-25,y-r-25,x+r+25,y+r+25,rot+180,55,false,p);p.setColor(Color.argb(180,90,230,255));c.drawLine(x-r-80,y,x-r-25,y,p);c.drawLine(x+r+25,y,x+r+80,y,p);c.drawLine(x,y-r-80,x,y-r-25,p);c.drawLine(x,y+r+25,x,y+r+80,p);p.setStyle(Paint.Style.FILL);p.setTextSize(12);p.setColor(Color.rgb(100,230,255));c.drawText("JARVIS CORE",x-42,y-r-95,p);c.drawText("◉ AI",x-r-105,y-55,p);c.drawText("VISION",x+r+45,y+35,p);c.drawText("MEMORY",x-r-110,y+75,p);p.setStyle(Paint.Style.STROKE);}
 }
