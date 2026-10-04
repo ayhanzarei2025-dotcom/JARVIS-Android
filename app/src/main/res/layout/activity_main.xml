@@ -13,7 +13,7 @@
         <ScrollView android:id="@+id/scroll" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:background="#091016" android:alpha="0.94" android:padding="10dp">
             <TextView android:id="@+id/chat" android:textColor="#d7e8e8" android:textSize="15sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:textIsSelectable="true"/>
         </ScrollView>
-        <EditText android:id="@+id/input" android:hint="Ask JARVIS..." android:textColor="#ffffff" android:hintTextColor="#66777d" android:singleLine="true" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <EditText android:id="@+id/input" android:hint="Ask JARVIS..." android:textColor="#ffffff" android:singleLine="true" android:layout_width="match_parent" android:layout_height="wrap_content"/>
         <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
             <Button android:id="@+id/voice" android:text="VOICE" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
             <Button android:id="@+id/send" android:text="EXECUTE" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
