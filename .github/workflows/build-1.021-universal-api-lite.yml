@@ -1,0 +1,51 @@
+name: Build JARVIS 1.021 Universal API Lite
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "build/1.021-universal-api-lite" ]
+  pull_request:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0 cmake;3.22.1 ndk;27.0.12077973'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '8.7'
+          cache-provider: basic
+      - name: Build APK without bundled offline model
+        run: gradle --no-daemon --stacktrace :app:assembleDebug
+      - name: Verify APK
+        run: |
+          test -f app/build/outputs/apk/debug/app-debug.apk
+          size=$(stat -c%s app/build/outputs/apk/debug/app-debug.apk)
+          echo "FINAL APK bytes: $size"
+          test "$size" -lt 200000000
+          cp app/build/outputs/apk/debug/app-debug.apk "JARVIS 1.021 Universal API Lite.apk"
+          sha256sum "JARVIS 1.021 Universal API Lite.apk" | tee JARVIS-1.021-universal-api-lite.sha256
+      - uses: actions/upload-artifact@v6
+        with:
+          name: JARVIS-1.021-universal-api-lite
+          path: 'JARVIS 1.021 Universal API Lite.apk'
+          retention-days: 14
+      - uses: actions/upload-artifact@v6
+        with:
+          name: JARVIS-1.021-universal-api-lite-sha256
+          path: 'JARVIS-1.021-universal-api-lite.sha256'
+          retention-days: 14
+      - name: Publish APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v1.021-universal-api-lite --yes || true
+          git push --delete origin v1.021-universal-api-lite || true
+          gh release create v1.021-universal-api-lite --title "JARVIS 1.021 — Universal API Lite" --notes "Original 1.021 Universal API/OpenRouter build without bundled offline Qwen model." "JARVIS 1.021 Universal API Lite.apk" "JARVIS-1.021-universal-api-lite.sha256"
