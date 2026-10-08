@@ -1,5 +1,5 @@
 name: Build JARVIS 1.021 Universal API APK
-on: { workflow_dispatch: {}, push: { branches: [ main ] }, pull_request: {} }
+on: { workflow_dispatch: {}, push: { branches: [ main, fix/1.021-original-universal-api ] }, pull_request: {} }
 permissions: { contents: write }
 jobs:
  build:
@@ -30,7 +30,7 @@ jobs:
       cp app/build/outputs/apk/debug/app-debug.apk "JARVIS 1.021 Universal API.apk"
       sha256sum "JARVIS 1.021 Universal API.apk" | tee JARVIS-1.021-universal-api.sha256
       split -b 450M "JARVIS 1.021 Universal API.apk" "JARVIS-1.021-universal-api-part-"
-      ls -lh JARVIS-1.021-part-*
+      ls -lh JARVIS-1.021-universal-api-part-*
    - uses: actions/upload-artifact@v6
      with: { name: JARVIS-1.021-universal-api-part-1, path: 'JARVIS-1.021-universal-api-part-aa', retention-days: 14 }
    - uses: actions/upload-artifact@v6
