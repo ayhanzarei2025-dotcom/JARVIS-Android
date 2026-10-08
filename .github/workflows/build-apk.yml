@@ -32,3 +32,4 @@ jobs:
       GH_TOKEN: ${{ github.token }}
      run: |
       gh release create v1.021-universal-api-lite --title "JARVIS 1.021 — Universal API Lite" --notes "Built directly from the original JARVIS 1.021 line. Keeps the Universal API/OpenRouter changes but does not bundle the large offline Qwen model, so the APK stays lightweight." "JARVIS 1.021 Universal API Lite.apk" "JARVIS-1.021-universal-api-lite.sha256"
+# Lightweight build trigger: no bundled offline model.
