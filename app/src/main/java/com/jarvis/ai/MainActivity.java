@@ -11,7 +11,7 @@ public class MainActivity extends AppCompatActivity{
   findViewById(R.id.send).setOnClickListener(v->send());findViewById(R.id.voice).setOnClickListener(v->listenOnce());findViewById(R.id.camera).setOnClickListener(v->toggleCamera());findViewById(R.id.memory).setOnClickListener(v->show("حافظه بلندمدت",memory.recent(60)));findViewById(R.id.notifications).setOnClickListener(v->notificationMenu());findViewById(R.id.wake).setOnClickListener(v->toggleWake());findViewById(R.id.menu).setOnClickListener(this::menu);
   status.setText("● "+(isOnline()?"متصل به اینترنت":"آفلاین"));connection.setText((isOnline()?"AI: ● متصل":"AI: ○ قطع")+"  Offline: ● آماده");mode.setText("حالت هوشمند • زبان اصلی: فارسی • ویس: فارسی • نوشته: فارسی");hud.setText("◉ CORE READY • VISION STANDBY • MEMORY READY");coreState.setText("◉ JARVIS CORE • 1.021");offlineState.setText("آفلاین: آماده");
   append("جارویس","سلام! من جارویس 1.021 هستم. زبان اصلی من فارسی است و تا وقتی تغییرش ندهی فارسی می‌مانم.");
-  localLlm.prepare((ok,msg)->{ offlineState.setText(ok?"آفلاین: مدل آماده":"آفلاین: "+msg); return kotlin.Unit.INSTANCE; });
+  offlineState.setText("آفلاین: مدل هنگام نیاز بارگذاری می‌شود");
   if(!"1".equals(secure.get("activated","")))new Handler().postDelayed(this::passwordGate,450);
   registerReceiver(wakeReceiver,new IntentFilter("com.jarvis.ai.WAKE"),Context.RECEIVER_NOT_EXPORTED);
   if(Build.VERSION.SDK_INT>=33&&checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS},77);
