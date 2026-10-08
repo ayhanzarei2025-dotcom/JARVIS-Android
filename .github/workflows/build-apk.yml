@@ -1,4 +1,4 @@
-name: Build JARVIS 1.021 Universal API APK
+name: Build JARVIS 1.021 Universal API Lite
 on: { workflow_dispatch: {}, push: { branches: [ main, fix/1.021-original-universal-api ] }, pull_request: {} }
 permissions: { contents: write }
 jobs:
@@ -12,33 +12,23 @@ jobs:
      with: { packages: 'platform-tools platforms;android-35 build-tools;35.0.0 cmake;3.22.1 ndk;27.0.12077973' }
    - uses: gradle/actions/setup-gradle@v6
      with: { gradle-version: '8.7', cache-provider: basic }
-   - name: Download real offline Persian-capable model
-     run: |
-      mkdir -p app/src/main/assets/offline
-      curl -L --fail --retry 7 --retry-delay 5 -o app/src/main/assets/offline/jarvis-qwen-q3km.gguf https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q3_k_m.gguf
-      ls -lh app/src/main/assets/offline/jarvis-qwen-q3km.gguf
-      size=$(stat -c%s app/src/main/assets/offline/jarvis-qwen-q3km.gguf)
-      test "$size" -ge 700000000
-   - name: Build APK
+   - name: Build APK without bundled offline model
      run: gradle --no-daemon --stacktrace :app:assembleDebug
    - name: Verify APK
      run: |
       test -f app/build/outputs/apk/debug/app-debug.apk
       size=$(stat -c%s app/build/outputs/apk/debug/app-debug.apk)
       echo "FINAL APK bytes: $size"
-      test "$size" -ge 500000000
-      cp app/build/outputs/apk/debug/app-debug.apk "JARVIS 1.021 Universal API.apk"
-      sha256sum "JARVIS 1.021 Universal API.apk" | tee JARVIS-1.021-universal-api.sha256
-      split -b 450M "JARVIS 1.021 Universal API.apk" "JARVIS-1.021-universal-api-part-"
-      ls -lh JARVIS-1.021-universal-api-part-*
+      test "$size" -lt 200000000
+      cp app/build/outputs/apk/debug/app-debug.apk "JARVIS 1.021 Universal API Lite.apk"
+      sha256sum "JARVIS 1.021 Universal API Lite.apk" | tee JARVIS-1.021-universal-api-lite.sha256
+      ls -lh "JARVIS 1.021 Universal API Lite.apk"
    - uses: actions/upload-artifact@v6
-     with: { name: JARVIS-1.021-universal-api-part-1, path: 'JARVIS-1.021-universal-api-part-aa', retention-days: 14 }
+     with: { name: JARVIS-1.021-universal-api-lite, path: 'JARVIS 1.021 Universal API Lite.apk', retention-days: 14 }
    - uses: actions/upload-artifact@v6
-     with: { name: JARVIS-1.021-universal-api-part-2, path: 'JARVIS-1.021-universal-api-part-ab', retention-days: 14 }
-   - uses: actions/upload-artifact@v6
-     with: { name: JARVIS-1.021-universal-api-part-3, path: 'JARVIS-1.021-universal-api-part-ac', retention-days: 14 }
+     with: { name: JARVIS-1.021-universal-api-lite-sha256, path: 'JARVIS-1.021-universal-api-lite.sha256', retention-days: 14 }
    - name: Publish APK to GitHub Release
      env:
       GH_TOKEN: ${{ github.token }}
      run: |
-      gh release create v1.021-universal-api --title "JARVIS 1.021 — Universal API" --notes "Built directly from the original JARVIS 1.021 commit. Adds configurable OpenAI-compatible endpoint, API key, model, auth header and auth prefix. OpenRouter compatible." "JARVIS 1.021 Universal API.apk" "JARVIS-1.021-universal-api.sha256"
+      gh release create v1.021-universal-api-lite --title "JARVIS 1.021 — Universal API Lite" --notes "Built directly from the original JARVIS 1.021 line. Keeps the Universal API/OpenRouter changes but does not bundle the large offline Qwen model, so the APK stays lightweight." "JARVIS 1.021 Universal API Lite.apk" "JARVIS-1.021-universal-api-lite.sha256"
