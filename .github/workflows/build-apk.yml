@@ -1,4 +1,4 @@
-name: Build JARVIS 2.02 APK
+name: Build JARVIS 2.01 APK
 on: { workflow_dispatch: {}, push: { branches: [ main ] }, pull_request: {} }
 permissions: { contents: write }
 jobs:
@@ -23,17 +23,17 @@ jobs:
       size=$(stat -c%s app/build/outputs/apk/debug/app-debug.apk)
       echo "FINAL APK bytes: $size"
       test "$size" -lt 100000000
-      cp app/build/outputs/apk/debug/app-debug.apk "JARVIS 2.02.apk"
-      sha256sum "JARVIS 2.02.apk" | tee JARVIS-2.02.sha256
+      cp app/build/outputs/apk/debug/app-debug.apk "JARVIS 2.01.apk"
+      sha256sum "JARVIS 2.01.apk" | tee JARVIS-2.01-qwen3.sha256
    - uses: actions/upload-artifact@v6
-     with: { name: JARVIS-2.02-apk, path: 'JARVIS 2.02.apk', retention-days: 30 }
+     with: { name: JARVIS-2.01-qwen3-apk, path: 'JARVIS 2.01.apk', retention-days: 30 }
    - uses: actions/upload-artifact@v6
-     with: { name: JARVIS-2.02-checksum, path: 'JARVIS-2.02.sha256', retention-days: 30 }
+     with: { name: JARVIS-2.01-qwen3-checksum, path: 'JARVIS-2.01-qwen3.sha256', retention-days: 30 }
    - name: Publish APK to GitHub Release
      if: github.event_name != 'pull_request'
      env:
       GH_TOKEN: ${{ github.token }}
      run: |
-      gh release delete v2.02 --yes || true
-      git push --delete origin v2.02 || true
-      gh release create v2.02 --title "JARVIS 2.02" --notes "JARVIS 2.02 — same Qwen local brain downloaded on first use; APK reduced below 100MB without weakening the local model. Multi-brain, live vision, voice, tools, memory and safety retained." "JARVIS 2.02.apk" "JARVIS-2.02.sha256"
+      gh release delete v2.01-qwen3 --yes || true
+      git push --delete origin v2.01-qwen3 || true
+      gh release create v2.01-qwen3 --title "JARVIS 2.01" --notes "JARVIS 2.01 — Qwen3-4B Q4_K_M local brain downloaded on first use; APK remains below 100MB while the stronger local model stays outside the APK. Multi-brain, live vision, voice, tools, memory and safety retained." "JARVIS 2.01.apk" "JARVIS-2.01-qwen3.sha256"
