@@ -19,6 +19,7 @@ class OfflineLlmEngine(private val context: Context) {
         private const val MODEL_URL = "https://huggingface.co/Qwen/Qwen/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q4_K_M.gguf"
         private const val MODEL_MIN = 2_300_000_000L
         private const val MODEL_MAX = 2_700_000_000L
+        private const val MODEL_SHA256 = "7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5"
     }
     fun prepare(callback: ((Boolean, String) -> Unit)? = null) {
         if (model?.isLoaded == true) { callback?.invoke(true, "آماده"); return }
@@ -28,7 +29,7 @@ class OfflineLlmEngine(private val context: Context) {
             try {
                 modelDir.mkdirs()
                 if (!modelFile.exists() || modelFile.length() !in MODEL_MIN..MODEL_MAX) downloadModel()
-                model = Llama.loadModel(modelFile.absolutePath, LlamaConfig(contextSize = 3072, threads = 6, gpuLayers = 12, temperature = 0.55f, topP = 0.9f, topK = 40))
+                model = Llama.loadModel(modelFile.absolutePath, LlamaConfig(contextSize = 4096, threads = 6, gpuLayers = 16, temperature = 0.55f, topP = 0.9f, topK = 40))
                 withContext(Dispatchers.Main) { callback?.invoke(true, "مغز محلی آماده است • GPU target فعال") }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { callback?.invoke(false, "آماده‌سازی مغز محلی ناموفق بود: " + (e.message ?: "خطای نامشخص")) }
