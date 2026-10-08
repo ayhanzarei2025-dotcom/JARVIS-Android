@@ -1,4 +1,4 @@
-name: Build JARVIS 1.021 APK
+name: Build JARVIS 1.021 Universal API APK
 on: { workflow_dispatch: {}, push: { branches: [ main ] }, pull_request: {} }
 permissions: { contents: write }
 jobs:
@@ -27,19 +27,18 @@ jobs:
       size=$(stat -c%s app/build/outputs/apk/debug/app-debug.apk)
       echo "FINAL APK bytes: $size"
       test "$size" -ge 500000000
-      cp app/build/outputs/apk/debug/app-debug.apk "JARVIS 1.021.apk"
-      split -b 450M "JARVIS 1.021.apk" "JARVIS-1.021-part-"
+      cp app/build/outputs/apk/debug/app-debug.apk "JARVIS 1.021 Universal API.apk"
+      sha256sum "JARVIS 1.021 Universal API.apk" | tee JARVIS-1.021-universal-api.sha256
+      split -b 450M "JARVIS 1.021 Universal API.apk" "JARVIS-1.021-universal-api-part-"
       ls -lh JARVIS-1.021-part-*
    - uses: actions/upload-artifact@v6
-     with: { name: JARVIS-1.021-part-1, path: 'JARVIS-1.021-part-aa', retention-days: 14 }
+     with: { name: JARVIS-1.021-universal-api-part-1, path: 'JARVIS-1.021-universal-api-part-aa', retention-days: 14 }
    - uses: actions/upload-artifact@v6
-     with: { name: JARVIS-1.021-part-2, path: 'JARVIS-1.021-part-ab', retention-days: 14 }
+     with: { name: JARVIS-1.021-universal-api-part-2, path: 'JARVIS-1.021-universal-api-part-ab', retention-days: 14 }
    - uses: actions/upload-artifact@v6
-     with: { name: JARVIS-1.021-part-3, path: 'JARVIS-1.021-part-ac', retention-days: 14 }
+     with: { name: JARVIS-1.021-universal-api-part-3, path: 'JARVIS-1.021-universal-api-part-ac', retention-days: 14 }
    - name: Publish APK to GitHub Release
      env:
       GH_TOKEN: ${{ github.token }}
      run: |
-      gh release delete v1.021 --yes || true
-      git push --delete origin v1.021 || true
-      gh release create v1.021 --title "JARVIS 1.021" --notes "JARVIS 1.021 APK — Persian-first, offline Qwen model, camera/voice/tool features." "JARVIS 1.021.apk"
+      gh release create v1.021-universal-api --title "JARVIS 1.021 — Universal API" --notes "Built directly from the original JARVIS 1.021 commit. Adds configurable OpenAI-compatible endpoint, API key, model, auth header and auth prefix. OpenRouter compatible." "JARVIS 1.021 Universal API.apk" "JARVIS-1.021-universal-api.sha256"
