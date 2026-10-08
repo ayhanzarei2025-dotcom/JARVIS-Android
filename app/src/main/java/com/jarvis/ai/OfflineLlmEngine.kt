@@ -14,11 +14,12 @@ class OfflineLlmEngine(private val context: Context) {
     private var model: dev.ffmpegkit.llama.LlamaModel? = null
     private var loading = false
     private val modelDir = File(context.filesDir, "models")
-    private val modelFile = File(modelDir, "jarvis-qwen-q4.gguf")
+    private val modelFile = File(modelDir, "jarvis-qwen3-4b-q4km.gguf")
     companion object {
-        private const val MODEL_URL = "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_0.gguf"
-        private const val MODEL_MIN = 350_000_000L
-        private const val MODEL_MAX = 470_000_000L
+        private const val MODEL_URL = "https://huggingface.co/Qwen/Qwen/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q4_K_M.gguf"
+        private const val MODEL_MIN = 2_300_000_000L
+        private const val MODEL_MAX = 2_700_000_000L
+        private const val MODEL_SHA256 = "7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5"
     }
     fun prepare(callback: ((Boolean, String) -> Unit)? = null) {
         if (model?.isLoaded == true) { callback?.invoke(true, "آماده"); return }
@@ -28,7 +29,7 @@ class OfflineLlmEngine(private val context: Context) {
             try {
                 modelDir.mkdirs()
                 if (!modelFile.exists() || modelFile.length() !in MODEL_MIN..MODEL_MAX) downloadModel()
-                model = Llama.loadModel(modelFile.absolutePath, LlamaConfig(contextSize = 3072, threads = 6, gpuLayers = 12, temperature = 0.55f, topP = 0.9f, topK = 40))
+                model = Llama.loadModel(modelFile.absolutePath, LlamaConfig(contextSize = 4096, threads = 6, gpuLayers = 16, temperature = 0.55f, topP = 0.9f, topK = 40))
                 withContext(Dispatchers.Main) { callback?.invoke(true, "مغز محلی آماده است • GPU target فعال") }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { callback?.invoke(false, "آماده‌سازی مغز محلی ناموفق بود: " + (e.message ?: "خطای نامشخص")) }
@@ -39,7 +40,7 @@ class OfflineLlmEngine(private val context: Context) {
         val tmp = File(modelDir, "jarvis-qwen-q4.gguf.part")
         var c: HttpURLConnection? = null
         try {
-            c = (URL(MODEL_URL).openConnection() as HttpURLConnection).apply { connectTimeout=20_000; readTimeout=120_000; instanceFollowRedirects=true; setRequestProperty("User-Agent", "JARVIS-Android/2.02") }
+            c = (URL(MODEL_URL).openConnection() as HttpURLConnection).apply { connectTimeout=20_000; readTimeout=120_000; instanceFollowRedirects=true; setRequestProperty("User-Agent", "JARVIS-Android/2.01") }
             c.connect()
             if (c.responseCode !in 200..299) error("دانلود مدل با کد ${c.responseCode} شکست خورد")
             FileOutputStream(tmp).use { out -> c.inputStream.use { input ->
@@ -54,7 +55,7 @@ class OfflineLlmEngine(private val context: Context) {
     fun ask(question: String, memory: String, callback: Callback) {
         prepare { ok, msg -> if (!ok) { callback.done(msg); return@prepare }; scope.launch {
             try {
-                val result = Llama.complete(model!!, question, """تو JARVIS 2.02 هستی، دستیار فارسی کاربر.
+                val result = Llama.complete(model!!, question, """تو JARVIS 2.01 هستی، دستیار فارسی کاربر.
 همیشه فارسی پاسخ بده مگر کاربر صریحاً زبان دیگری بخواهد.
 پاسخ طبیعی، دقیق و نسبتاً کوتاه بده.
 درخواست‌های قتل، ساخت سلاح، ساخت مواد منفجره یا محتوای جنسی صریح را انجام نده.
