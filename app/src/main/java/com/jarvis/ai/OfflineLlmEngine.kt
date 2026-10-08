@@ -16,7 +16,7 @@ class OfflineLlmEngine(private val context: Context) {
     private val modelDir = File(context.filesDir, "models")
     private val modelFile = File(modelDir, "jarvis-qwen3-4b-q4km.gguf")
     companion object {
-        private const val MODEL_URL = "https://huggingface.co/Qwen/Qwen/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q4_K_M.gguf"
+        private const val MODEL_URL = "https://huggingface.co/Qwen/Qwen3-4B-GGUF/resolve/bc640142c66e1fdd12af0bd68f40445458f3869b/Qwen3-4B-Q4_K_M.gguf"
         private const val MODEL_MIN = 2_300_000_000L
         private const val MODEL_MAX = 2_700_000_000L
         private const val MODEL_SHA256 = "7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5"
@@ -29,13 +29,23 @@ class OfflineLlmEngine(private val context: Context) {
             try {
                 modelDir.mkdirs()
                 if (!modelFile.exists() || modelFile.length() !in MODEL_MIN..MODEL_MAX) downloadModel()
-                model = Llama.loadModel(modelFile.absolutePath, LlamaConfig(contextSize = 4096, threads = 6, gpuLayers = 16, temperature = 0.55f, topP = 0.9f, topK = 40))
-                withContext(Dispatchers.Main) { callback?.invoke(true, "مغز محلی آماده است • GPU target فعال") }
+                model = Llama.loadModel(modelFile.absolutePath, LlamaConfig(contextSize = 2048, threads = 6, gpuLayers = 0, temperature = 0.55f, topP = 0.9f, topK = 40))
+                withContext(Dispatchers.Main) { callback?.invoke(true, "مغز محلی آماده است • حالت پایدار CPU") }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { callback?.invoke(false, "آماده‌سازی مغز محلی ناموفق بود: " + (e.message ?: "خطای نامشخص")) }
             } finally { loading = false }
         }
     }
+    private fun verifySha256(file: File): Boolean {
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input ->
+            val buf = ByteArray(1024 * 1024)
+            while (true) { val n = input.read(buf); if (n <= 0) break; digest.update(buf, 0, n) }
+        }
+        val actual = digest.digest().joinToString("") { "%02x".format(it) }
+        return actual.equals(MODEL_SHA256, ignoreCase = true)
+    }
+
     private fun downloadModel() {
         val tmp = File(modelDir, "jarvis-qwen-q4.gguf.part")
         var c: HttpURLConnection? = null
@@ -48,6 +58,7 @@ class OfflineLlmEngine(private val context: Context) {
                 while (true) { val n=input.read(buf); if (n<=0) break; out.write(buf,0,n); total+=n; if(total>MODEL_MAX) error("حجم مدل بیش از حد مجاز است") }
             }}
             if (tmp.length() !in MODEL_MIN..MODEL_MAX) error("دانلود ناقص یا نامعتبر است")
+            if (!verifySha256(tmp)) error("SHA-256 مدل Qwen3 با نسخه رسمی مطابقت ندارد")
             if (modelFile.exists()) modelFile.delete()
             if (!tmp.renameTo(modelFile)) error("ذخیره مدل ناموفق بود")
         } finally { c?.disconnect(); if(tmp.exists() && !modelFile.exists()) tmp.delete() }
